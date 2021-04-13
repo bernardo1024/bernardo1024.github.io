@@ -19,6 +19,9 @@ function insertVarInString(msg, s1, s2) {
 }
 
 function getElementByIdOrName(idOrName) {
+  if(!idOrName){
+    return;
+  }
   var e = document.getElementById(idOrName);
   if (e) {
     return e;
@@ -27,7 +30,6 @@ function getElementByIdOrName(idOrName) {
   if (names.length == 1) {
     return names[0];
   }
-
   return names[0];
 }
 
@@ -79,9 +81,10 @@ function cleanAllErrorElements(err) {
 }
 
 function cleanErrorElement(e, err) {
-  var labeltxt = e.label.getAttribute("sanwafuilabeltxt");
+  var label = getLabel(e);
+  var labeltxt = label.getAttribute("sanwafuilabeltxt");
   if (labeltxt) {
-    e.label.innerHTML = labeltxt;
+    label.innerHTML = labeltxt;
   }
 
   if (e.classList.contains(err.inputClass)) {
@@ -101,6 +104,14 @@ function buildMsgFromArray(msgs, linesep) {
   return out;
 }
 
+function getLabel(e){
+  if(e.swLabelId){
+    return e.swLabelId;
+  }
+  else{
+    return e.label;
+  }
+}
 function doLabelAndHover(e, err, msgs, actions) {
   var label;
   var labeltxt = "";
@@ -109,10 +120,9 @@ function doLabelAndHover(e, err, msgs, actions) {
   if (e.getAttribute("id")) {
     field = getElementByIdOrName(e.getAttribute("id"));
   } else {
-    return;
+    field = getElementByIdOrName(e.getAttribute("name"));
   }
-
-  label = field.label;
+  label = getLabel(field);
   if (label) {
     labeltxt = label.getAttribute("sanwafuilabeltxt");
     if (!labeltxt) {
@@ -247,7 +257,7 @@ function buildErrorItemsArray(e, err, actions) {
       setErrorItem(e, err, errorItem, err.type_aa, true, renderSpecialChars(extra), "");
     } else if (type == "k{") {
       setErrorItem(e, err, errorItem, err.type_k, true, extra.replace(",", "\" or \""), "");
-    } else if (type == "r{") {
+    } else if (type == "r{" || type == "x{") {
       setErrorItem(e, err, errorItem, err.type_r, true, extra, "");
     }
   }
@@ -270,9 +280,6 @@ function buildErrorItemsArray(e, err, actions) {
   }
   if (e.swFormatIsInError) {
     setErrorItem(e, err, errorItem, err.format, false, e.swFormat, "");
-  }
-  if (e.swFixedFormatIsInError) {
-    setErrorItem(e, err, errorItem, err.fixedFormat, false, e.swFixedFormat, "");
   }
 
   if (e.swRelatedIsInError) {
@@ -351,7 +358,6 @@ function handleErrors(err, doBlurActions) {
       e.innerHTML = buildErrorMsg(e, err, "html");
     }
   }
-
   if (err.msgarray.length > 0 && actions.includes("alertWithPopup")) {
     alert(buildErrorMsg(e, err, "alertWithPopup"));
   }
@@ -369,6 +375,8 @@ function getAttribute(config, att, def) {
 
 function loadTags(e) {
   e.swDisplay = getAttribute(e, "data-sw-display", "");
+  e.swLabelId = getElementByIdOrName(getAttribute(e, "data-sw-label-id", ""));
+  
   e.swErrMsg = getAttribute(e, "data-sw-err-msg", "");
   e.swType = getAttribute(e, "data-sw-type", "");
   e.swTypeIsInError = false;
@@ -384,10 +392,10 @@ function loadTags(e) {
     e.swReq = true;
   }
   e.swReqIsInError = false;
-  e.swFormat = getAttribute(e, "data-sw-format", "");
+  if(e.swType.startsWith('f{')){
+    e.swFormat = e.swType.substring(2, e.swType.length -1);
+  }
   e.swFormatIsInError = false;
-  e.swFixedFormat = getAttribute(e, "data-sw-fixed-format", "");
-  e.swFixedFormatIsInError = false;
   e.swMaxValue = getAttribute(e, "data-sw-max-value", "");
   e.swMaxValueIsInError = false;
   e.swMinValue = getAttribute(e, "data-sw-min-value", "");
@@ -403,56 +411,56 @@ function loadGlobalErrorSettings(forElementOnly) {
   err.elements = [];
   err.msgarray = [];
 
-  err.numErrorsToDisplay = getAttribute(config, "numErrorsToDisplay");
+  err.numErrorsToDisplay = getAttribute(config, "data-numErrorsToDisplay");
   if (err.numErrorsToDisplay == "") {
     err.numErrorsToDisplay = -1;
   }
 
-  err.errorActions = getAttribute(config, "errorActions", "");
+  err.errorActions = getAttribute(config, "data-errorActions", "");
   if (err.errorActions == "") {
     err.errorActions = "hoverOnLabel,hoverShowLabel,colorLabel,colorInput,showOnPage,showOnPageSanwafTable,alertWithPopup";
   }
 
-  err.blurActions = getAttribute(config, "blurActions", "");
+  err.blurActions = getAttribute(config, "data-blurActions", "");
   if (err.blurActions == "") {
     err.blurActions = "hoverOnLabel,hoverShowLabel,colorLabel,colorInput";
   }
 
-  err.labelClass = getAttribute(config, "labelClass", "sanwafuiLabel");
-  err.inputClass = getAttribute(config, "inputClass", "sanwafuiInput");
-  err.tooltipClass = getAttribute(config, "tooltipClass", "sawafuiTooltip");
-  err.tooltipTextClass = getAttribute(config, "tooltipTextClass", "tooltiptext");
-  err.sanwafErrorTableClass = getAttribute(config, "sanwafErrorTableClass", "sanwafuiErrorTable");
-  err.sanwafErrorTableTdKeyClass = getAttribute(config, "sanwafErrorTableTdKeyClass", "sanwafuiErrorTableTdKey");
-  err.sanwafErrorTableTdDescClass = getAttribute(config, "sanwafErrorTableTdDescClass", "sanwafuiErrorTableTdDesc");
+  err.labelClass = getAttribute(config, "data-labelClass", "sanwafuiLabel");
+  err.inputClass = getAttribute(config, "data-inputClass", "sanwafuiInput");
+  err.tooltipClass = getAttribute(config, "data-tooltipClass", "sawafuiTooltip");
+  err.tooltipTextClass = getAttribute(config, "data-tooltipTextClass", "tooltiptext");
+  err.sanwafErrorTableClass = getAttribute(config, "data-sanwafErrorTableClass", "sanwafuiErrorTable");
+  err.sanwafErrorTableTdKeyClass = getAttribute(config, "data-sanwafErrorTableTdKeyClass", "sanwafuiErrorTableTdKey");
+  err.sanwafErrorTableTdDescClass = getAttribute(config, "data-sanwafErrorTableTdDescClass", "sanwafuiErrorTableTdDesc");
 
-  err.showOnPageElementId = getAttribute(config, "showOnPageElementId", "sanwafuierrorwrapper");
-  err.showOnPageSanwafTableElementId = getAttribute(config, "showOnPageSanwafTableElementId", "sanwafuierrortable");
+  err.showOnPageElementId = getAttribute(config, "data-showOnPageElementId", "sanwafuierrorwrapper");
+  err.showOnPageSanwafTableElementId = getAttribute(config, "data-showOnPageSanwafTableElementId", "sanwafuierrortable");
   if (err.errorActions.includes("hoverShowLabel")) {
     err.showlabel = true;
   } else {
     err.showlabel = false;
   }
 
-  err.popheader1 = getAttribute(config, "errorPopHeader1", "Please correct the following errors");
-  err.popheader2 = getAttribute(config, "errorPopHeader2", "---------------------------------------------------------------------------");
-  err.min = getAttribute(config, "errorMin", "Must be between %1 and %2 chars");
-  err.max = getAttribute(config, "errorMax", "Must be between %1 and %2 chars");
-  err.maxMinEqualMsg = getAttribute(config, "errorMaxMinEqual", "Must be %1 chars");
-  err.required = getAttribute(config, "errorRequired", "Is a Required Field");
-  err.fixedFormat = getAttribute(config, "errorFixedFormat", "Must have the format: %1");
-  err.format = getAttribute(config, "errorFormat", "Must have the format: %1 ");
-  err.minVal = getAttribute(config, "errorMinValue", "Must be between %1 and %2");
-  err.maxVal = getAttribute(config, "errorMaxValue", "Must be between %1 and %2");
-  err.rel = getAttribute(config, "errorRelated", "Is required when %1 is entered");
-  err.relNotEqual = getAttribute(config, "errorRelatedNotEqual", "%1 must have the same value as %2");
-  err.type_c = getAttribute(config, "errorTypeChar", "Must be a single character");
-  err.type_n = getAttribute(config, "errorTypeNumeric", "Must be numeric");
-  err.type_nn = getAttribute(config, "errorTypeNumericDelimited", "Must be a list of numeric value(s) delimted by %1");
-  err.type_a = getAttribute(config, "errorTypeAlphanumeric", "Must be alphanumeric");
-  err.type_aa = getAttribute(config, "errorTypeAlphanumericAndMore", "Must be alphanumeric or the following: %1");
-  err.type_k = getAttribute(config, "errorTypeConstant", "Must be must be one of the following: \"%1\"");
-  err.type_r = getAttribute(config, "errorTypeRegex", "Must be must match the regex: \"%1\"");
+  err.popheader1 = getAttribute(config, "data-errorPopHeader1", "Please correct the following errors");
+  err.popheader2 = getAttribute(config, "data-errorPopHeader2", "---------------------------------------------------------------------------");
+  err.min = getAttribute(config, "data-errorMin", "Must be between %1 and %2 chars");
+  err.max = getAttribute(config, "data-errorMax", "Must be between %1 and %2 chars");
+  err.maxMinEqualMsg = getAttribute(config, "data-errorMaxMinEqual", "Must be %1 chars");
+  err.required = getAttribute(config, "data-errorRequired", "Is a Required Field");
+  err.format = getAttribute(config, "data-errorFormat", "Must have the format: %1 ");
+  err.minVal = getAttribute(config, "data-errorMinValue", "Must be between %1 and %2");
+  err.maxVal = getAttribute(config, "data-errorMaxValue", "Must be between %1 and %2");
+  err.rel = getAttribute(config, "data-errorRelated", "Is required when %1 is entered");
+  err.relNotEqual = getAttribute(config, "data-errorRelatedNotEqual", "%1 must have the same value as %2");
+  err.type_c = getAttribute(config, "data-errorTypeChar", "Must be a single character");
+  err.type_n = getAttribute(config, "data-errorTypeNumeric", "Must be numeric");
+  err.type_nn = getAttribute(config, "data-errorTypeNumericDelimited", "Must be a list of numeric value(s) delimted by %1");
+  err.type_a = getAttribute(config, "data-errorTypeAlphanumeric", "Must be alphanumeric");
+  err.type_aa = getAttribute(config, "data-errorTypeAlphanumericAndMore", "Must be alphanumeric or the following: %1");
+  err.type_k = getAttribute(config, "data-errorTypeConstant", "Must be must be one of the following: \"%1\"");
+  err.type_r = getAttribute(config, "data-errorTypeRegex", "Must be must match the regex: \"%1\"");
+  err.type_f = getAttribute(config, "data-errorTypeFormat", "Must have the format: %1");
 
   associateLabels();
   if (!forElementOnly) {
@@ -505,31 +513,24 @@ function trimSpaces(e) {
   }
 }
 
-function isFormat(e, err, type) {
-  var formatlen = -1;
-  var format = "";
-  if (type == 'positive') {
-    formatlen = e.swFormat.length;
-    format = e.swFormat;
-  } else {
-    formatlen = e.swFixedFormat.length;
-    format = e.swFixedFormat;
-  }
+function isFormatValid(e, err) {
+  var formatlen = e.swFormat.length;
+  
   if (e.value.length == 0 && formatlen > 0 && e.swReq == true) {
-    return false;
+    e.swFormatIsInError = true;
+    return;
   }
   if (e.value.length == 0 && e.swReq == false) {
-    return true;
+    return;
   }
-
   for (var i = 0; i < e.value.length; i++) {
     if (e.value.length > formatlen) {
       e.value = e.value.substring(0, formatlen);
       break;
     }
-    var f = format.charAt(i);
+    var f = e.swFormat.charAt(i);
     var c = e.value.charAt(i);
-    if (type == 'positive' && f != '#' && f != 'A' && f != 'a' && c != f) {
+    if (f != '#' && f != 'A' && f != 'a' && c != f) {
       e.value = e.value.substring(0, i) + f + e.value.substring(i, e.value.length);
       continue;
     }
@@ -548,17 +549,12 @@ function isFormat(e, err, type) {
     } else if ((f == '#' && !(c >= '0' && c <= '9')) || ((f == 'A' || f == 'a') && !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))) {
       e.value = e.value.substring(0, i) + e.value.substring(i + 1, e.value.length);
     }
-    if (type != "positive") {
-      if (c != f) {
-        return false;
-      }
-    }
   }
   if (e.value.length != formatlen) {
-    return false;
+    e.swFormatIsInError = true;
+    return;
   }
   cleanErrorElement(e, err);
-  return true;
 }
 
 function parseBlocks(s, start, andOr, match, reverseMatch, forwardMatch) {
@@ -848,6 +844,16 @@ function isAlphanumericAndAdditionalValid(e, err) {
     }
   }
 
+  if (hasSpace){
+    more = more.replaceAll("\\s", "");
+  } else if (hasTab){
+    more = more.replaceAll("\\t", "");
+  } else if (hasNewline){
+    more = more.replaceAll("\\n", "");
+  } else if (hasCarriage){
+    more = more.replaceAll("\\r", "");
+  }
+
   for (var j = 0; j < e.value.length; j++) {
     c = e.value.charCodeAt(j);
     if (!isAlphanumeric(c)) {
@@ -876,8 +882,6 @@ function isAlphanumericAndAdditionalValid(e, err) {
 }
 
 function isConstantValid(e, err) {
-  // need to do if from a ddlb or list... the constant values are defined in
-  // html
   if (!e || e.value.length == 0) {
     return;
   }
@@ -929,20 +933,12 @@ function isElementValid(e, err) {
     isAlphanumericAndAdditionalValid(e, err);
   } else if (type == 'k{') {
     isConstantValid(e, err);
-  } else if (type == 'r{') {
+  } else if (type == 'r{' || type == 'x{') {
     isRegexValid(e, err);
+  } else if(type == 'f{') {
+    isFormatValid(e, err);
   }
-
-  if (e.swFormat.length > 0) {
-    if (!isFormat(e, err, 'positive')) {
-      e.swFormatIsInError = true;
-    }
-  }
-  if (e.swFixedFormat.length > 0) {
-    if (!isFormat(e, err, 'absolute')) {
-      e.swFixedFormatIsInError = true;
-    }
-  }
+  
   if (e.swRelated) {
     isRelateValid(e);
   }
@@ -971,7 +967,7 @@ function isElementValid(e, err) {
     }
   }
 
-  if (e.swTypeIsInError || e.swMaxIsInError || e.swMinIsInError || e.swReqIsInError || e.swFormatIsInError || e.swFixedFormatIsInError || e.swMaxValueIsInError
+  if (e.swTypeIsInError || e.swMaxIsInError || e.swMinIsInError || e.swReqIsInError || e.swFormatIsInError || e.swMaxValueIsInError
       || e.swMinValueIsInError || e.swRelatedIsInError) {
     err.elements.push(e);
     err.count += 1;
@@ -1053,9 +1049,6 @@ function initSanwafui() {
   for (var i = 0; i < document.forms.length; i++) {
     for (var j = 0; j < document.forms[i].length; j++) {
       var e = document.forms[i].elements[j];
-
-      // test for rel and set listener on parent - might have the the
-      // data-sw-type set
       var related = getAttribute(e, "data-sw-related", "");
       if (related) {
         loadTags(e);
