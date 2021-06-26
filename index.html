@@ -101,7 +101,7 @@
     </div>
     
     <!-- Sanwaf-ui code - STEP 4. add sanwaf attributes (data-sw*) to configure elements;  -->
-    <form id="testform" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+    <form id="testform" method="post" action="./someEndPoint">
       <table class="table-instructions">
         <tr>
           <td><b>Item</b></td>
@@ -116,11 +116,12 @@
           <td>Required. Format: "(###) ###-####"</td>
         </tr>
         <tr>
-          <td><label id="postalCodeLabel">Postal Code</label></td>  
+          <td><label id="postalCodeLabel">Zip/Postal Code</label></td>  
           <!-- Sanwaf-ui code - Note the above label does not use the label's 'for' attribute.  
-          						See below the 'data-sw-label-id' attribute that associates a label to the input  -->	
-          <td><input type="text" id="postalcode" name="postalcode" size="20" data-sw-display="Postal Code" data-sw-type="f{A#A #A#}" data-sw-label-id="postalCodeLabel" data-sw-req="true" /></td>
-          <td>Required. format: "A#A #A#"</td>
+          						See below the 'data-sw-label-id' attribute that associates a label to the input.
+          						Also note the use of using multiple formats in a single format field  -->	
+          <td><input type="text" id="postalcode" name="postalcode" size="20" data-sw-display="Zip or Postal Code" data-sw-type="f{#####||#####-####||A#A-#A#}" data-sw-label-id="postalCodeLabel" data-sw-req="true" /></td>
+          <td>Required. format: "##### || #####-#### || A#A-#A#"</td>
         </tr>
         <tr>
           <td><label for="password">Password</label></td>
@@ -156,8 +157,8 @@
         <tr>
           <td><label for="visaExpirationDate">Expiry</label></td>
           <!-- Sanwaf-ui code - Note that the expiry date is required if the visa number is entered (see 'data-sw-related' attribute below) -->  
-          <td><input type="text" id="visaExpirationDate" name="visaExpirationDate" size="20" data-sw-display="Expiry" data-sw-type="f{##/##)" data-sw-related="visa" /></td>
-          <td>Must have a valid format of ##/##.  Required if Visa number is entered</td>
+          <td><input type="text" id="visaExpirationDate" name="visaExpirationDate" size="20" data-sw-display="Expiry" data-sw-type="f{#[1-12] / #[21-35]}" data-sw-related="visa" /></td>
+          <td>Must have a valid format of #[1-12] / #[21-35].  Required if Visa number is entered</td>
         </tr>
         <tr>
           <td><label for="amount">Purchase Amount</label></td>
@@ -515,7 +516,7 @@
     <br/>    
     
     <h3>Test Sanwaf-ui Data Types</h3>
-    <form id="datatypes" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+    <form id="datatypes" method="post" action="./someEndPoint">
       <table class="table-compact-normal-font">
         <tr>
           <td><b>Data Type</b></td>
@@ -573,23 +574,39 @@
       <tr><td>A Format is way to best fit a user's entry into a mask</td><td></td></tr>
       <tr><td>Sanwaf-ui automatically sets an oninput event handler to elements that have the format data type.  the event handler formats as the user enters data</td><td></td></tr>
       <tr><td>Four special characters are provided to be used in formats:</td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;# - represents a number</td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;A - represents an Uppercase character</td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;a - represents an lowercase character</td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;c - represents a character of any case</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;#   - represents a number</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;#[] - represents a number within a specified range, for example: #[1-12]</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;A   - represents an Uppercase character</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;a   - represents an lowercase character</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;c   - represents a character of any case</td><td></td></tr>
       <tr><td>Use a combination of the special and non-special characters to create formats</td><td></td></tr>
       <tr><td>To use the four special characters in the format itself, you will need to escape them:</td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;\#  \A  \a  \c</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;\#  \A  \a  \c \[ \]</td><td></td></tr>
       <tr><td>For example, if you want the end user to enter a telephone number formatted in a specific way:</td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;<b><a href="#sanwafuidatatype">data-sw-type</a>="f{(###) ###-####}"</b></td><td></td></tr>
-      <tr><td>&nbsp;&nbsp;this specifies to best fist a user's entry into the specified mask.</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;<b><a href="#sanwafuidatatype">data-sw-type</a>="f{(###) ### - ####}"</b></td><td></td></tr>
       <tr>
         <td>
-          <form id="mskdemo" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+          <form id="mskdemo" method="post" action="./someEndPoint">
             <table class="table-compact-normal-font">
               <tr>
                 <td><label for="tel">Telephone</label></td>
-                <td><input id="tel" name="tel" data-sw-display="Telephone Number" size="20" data-sw-type="f{(###) ###-####}" /> <input type="button" value="Validate" onClick="return isSanwafUiFormValid(mskdemo)"/></td>
+                <td><input id="tel" name="tel" data-sw-display="Telephone Number" size="20" data-sw-type="f{(###) ### - ####}" /> <input type="button" value="Validate" onClick="return isSanwafUiFormValid(mskdemo)"/></td>
+              </tr>
+            </table>
+          </form>
+        </td>
+        <td></td>
+      </tr>
+      <tr><td>Or, if you want the end user to enter a credit card expiry date limited to the years ending in 21 - 35:</td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;<b><a href="#sanwafuidatatype">data-sw-type</a>="f{#[1-12] / #[21-35]}"</b></td><td></td></tr>
+      <tr><td>&nbsp;&nbsp;this specifies to best fist a user's entry into the specified mask.</td><td></td></tr>
+      <tr>
+        <td>
+          <form id="mskdemo2" method="post" action="./someEndPoint">
+            <table class="table-compact-normal-font">
+              <tr>
+                <td><label for="exp">Expiry</label></td>
+                <td><input id="exp" name="exp" data-sw-display="Expiry" size="20" data-sw-type="f{#[1-12] / #[21-35]}" /> <input type="button" value="Validate" onClick="return isSanwafUiFormValid(mskdemo2)"/></td>
               </tr>
             </table>
           </form>
@@ -623,7 +640,7 @@
       <tr><td><b>Test a few relationships</b></td><td></td></tr>
       <tr>
         <td>
-          <form id="reldemopassword" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+          <form id="reldemopassword" method="post" action="./someEndPoint">
             Password must equal each other
             <br/>
             Set the attribute <b>data-sw-related="pass1:="</b> on pass2 (confirm password)
@@ -642,7 +659,7 @@
       <tr>
         <td>
         <br/>
-          <form id="reldemoEqualValue" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+          <form id="reldemoEqualValue" method="post" action="./someEndPoint">
             If you have food allergies, you need to enter what foods you're are allergic to
             <br/>
             Set the attribute <b>data-sw-related="allergies:Yes"</b> on the foodsAllergicTo element
@@ -661,7 +678,7 @@
        <tr>
           <td>
           <br/>
-          <form id="reldemoOrCondition" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+          <form id="reldemoOrCondition" method="post" action="./someEndPoint">
             If you have an element that needs data based on 2 items
             <br/>
             set the attribute <b>data-sw-related="(jog:Yes)||(weights:Yes)"</b> on the duration element
@@ -683,7 +700,7 @@
        <tr>
           <td>
           <br/>
-          <form id="reldemoOrOrAndCondition" method="post" action="./someEndPoint" onsubmit="sanwafui()">
+          <form id="reldemoOrOrAndCondition" method="post" action="./someEndPoint">
             If you have an element that needs data based on 2 items
             <br/>
             set the attribute <b>data-sw-related="(sports:true)||(music:true)&amp;&amp;(hobby:true)"</b> on the duration element
@@ -694,7 +711,6 @@
                 <input type="checkbox" id="sports" name="sports"/><label for="sports">Sports</label>,&nbsp;&nbsp;
                 <input type="checkbox" id="music" name="music"/><label for="music">Music</label>,&nbsp;&nbsp;
                 <label for="duration1">Duration</label><input type="text" id="duration1" nameid="duration1" data-sw-display="Duration" data-sw-type="n" data-sw-related=" ( sports : true ) || ( music : true ) && ( hobby : true ) "/>&nbsp;&nbsp;
-                
                 <input type="button" value="Validate" onClick="return isSanwafUiFormValid(reldemoOrOrAndCondition)"/>
                 </td>
               </tr>
