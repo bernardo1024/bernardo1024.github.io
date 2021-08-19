@@ -1,8 +1,0 @@
-Visa cards – 
-Begin with a 4 and have 13 or 16 digits. 
-Mastercard cards – Begin with a 5 and has 16 digits. 
-American Express cards – Begin with a 3, followed by a 4 or a 7 has 15 digits. 
-Discover cards – Begin with a 6 and have 16 digits.
-
-
-
